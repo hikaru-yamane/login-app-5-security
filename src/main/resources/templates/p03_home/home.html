@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html 
+	xmlns:th="http://www.thymeleaf.org" 
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security" 
+>
+<head>
+<meta charset="UTF-8">
+<title>home</title>
+<style>
+button.link-style-btn {
+	cursor: pointer;
+	border: none;
+	background: none;
+	color: #0033cc;
+}
+button.link-style-btn:hover {
+	text-decoration: underline;
+	color: #002080;
+}
+button.disabled-link-style-btn {
+	border: none;
+	background: none;
+	color: #999999;
+}
+</style>
+<script th:src="@{/js/common/csrf.js}"></script>
+</head>
+<body>
+<div th:replace="common_element/header::header"></div>
+<hr>
+<th:block sec:authorize="hasRole('ADMIN')">
+<form th:action="@{/home/user}" method="post"><button type="submit" class="link-style-btn">ユーザ登録</button></form>
+</th:block>
+<form th:action="@{/home/time}" method="post"><button type="submit" class="link-style-btn">勤怠管理</button></form>
+<form th:action="@{/home/forum}" method="post"><button type="submit" class="link-style-btn">社員交流掲示板</button></form>
+<form th:action="@{/home/image}" method="post"><button type="submit" class="link-style-btn">年末調整</button></form>
+<form th:action="@{/home/movie}" method="post"><button type="submit" class="link-style-btn">リモート会議</button></form>
+<form th:action="@{/home}" method="post"><button type="submit" class="disabled-link-style-btn">勤務表</button></form>
+<form th:action="@{/home}" method="post"><button type="submit" class="disabled-link-style-btn">セキュリティ研修</button></form>
+<hr>
+<div th:replace="common_element/footer::footer"></div>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>image</title>
+<script th:src="@{/js/common/csrf.js}"></script>
+</head>
+<body>
+<div th:replace="common_element/header::header"></div>
+<hr>
+<form th:action="@{/image/register}" method="post" enctype="multipart/form-data">
+<div>
+画像:<input type="file" name="image" accept="image/*">
+<button type="submit">登録</button>
+</div>
+</form>
+<hr>
+<div th:replace="common_element/footer::footer"></div>
+</body>
+</html>

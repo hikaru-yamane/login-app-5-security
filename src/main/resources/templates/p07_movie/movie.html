@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>movie</title>
+<script th:src="@{/js/common/csrf.js}"></script>
+<script>
+let socket;
+let myVideo;
+let otherVideo;
+let peer;
+let iceCandidates;
+let stream;
+window.addEventListener('load', () => {
+	myVideo = document.getElementById('myVideo');
+	otherVideo = document.getElementById('otherVideo');
+	document.getElementById('connectBtn').addEventListener('click', connectSocket);
+	connectRTC();
+});
+window.addEventListener('beforeunload', () => {
+	if (socket) {
+		socket.close();
+	}
+	if (peer) {
+		peer.close();
+	}
+	if (stream) {
+		stream.getTracks()[0].stop();
+	}
+});
+async function connectRTC() {
+	peer = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+	iceCandidates = [];
+	
+	peer.addEventListener('icecandidate', (event) => {
+		if (!event.candidate) {
+			return;
+		}
+		iceCandidates.push(event.candidate);
+	});
+	peer.addEventListener('track', (event) => {
+		otherVideo.srcObject = event.streams[0];
+	});
+	
+	const cameraMode = document.forms.form.cameraMode.value;
+	const facingMode = cameraMode === 'front' ? 'use' : { exact: 'environment' };
+	stream = await navigator.mediaDevices.getUserMedia({
+		audio: false,
+		video: {
+			facingMode: facingMode
+		}
+	});
+	myVideo.srcObject = stream;
+	stream.getTracks().forEach((track) => {
+		peer.addTrack(track, stream);
+	});
+}
+function connectSocket() {
+	const room = document.getElementById('room').value;
+	if (!room) {
+		alert('接続先を入力してください。');
+		return;
+	}
+	if (socket) {
+		socket.close();
+		peer.close();
+		connectRTC();
+	}
+	const isLocal = location.hostname === 'localhost';
+	const ws = isLocal ? 'ws' : 'wss';
+	const host = location.host;
+	const url = `${ws}://${host}/movie/${room}`;
+	socket = new WebSocket(url);
+	socket.onopen = async () => {
+		const li = document.createElement('li');
+		li.textContent = `${room}に接続しました。`;
+		document.getElementById('messageList').appendChild(li);
+		
+		sendSdpOffer();
+	};
+	socket.onmessage = async (event) => {
+		const json = event.data;
+		const obj = JSON.parse(json);
+		if (obj.type === 'offer') {
+			const description = obj;
+			receiveSdpOffer(description);
+			sendSdpAnswer();
+			sendIceCandidates();
+		} else if (obj.type === 'answer') {
+			const description = obj;
+			receiveSdpAnswer(description);
+			sendIceCandidates();
+		} else {
+			const iceCandidates = obj;
+			receiveIceCandidates(iceCandidates);
+		}
+	};
+	socket.onerror = () => {
+		const li = document.createElement('li');
+		li.textContent = `${room}に接続できませんでした。`;
+		document.getElementById('messageList').appendChild(li);
+	};
+}
+async function sendSdpOffer() {
+	const description = await peer.createOffer();
+	await peer.setLocalDescription(description);
+	socket.send(JSON.stringify(description));
+}
+async function receiveSdpOffer(description) {
+	await peer.setRemoteDescription(description);
+}
+async function sendSdpAnswer() {
+	const description = await peer.createAnswer();
+	await peer.setLocalDescription(description);
+	socket.send(JSON.stringify(description));
+}
+async function receiveSdpAnswer(description) {
+	await peer.setRemoteDescription(description);
+}
+async function sendIceCandidates() {
+	await wait(200);
+	socket.send(JSON.stringify(iceCandidates));
+}
+async function receiveIceCandidates(iceCandidates) {
+	for (const iceCandidate of iceCandidates) {
+		await peer.addIceCandidate(iceCandidate);
+	}
+}
+function wait(millisecond) {
+	return new Promise((resolve) => {
+		setTimeout(() => {
+			resolve();
+		}, millisecond);
+	});
+}
+</script>
+</head>
+<body>
+<div th:replace="common_element/header::header"></div>
+<hr>
+<form name="form">
+<div style="display: flex;">
+	<div>
+	<p>自分の映像</p>
+	<video id="myVideo" autoplay></video>
+	</div>
+	<div>
+	<p>相手の映像</p>
+	<video id="otherVideo" autoplay></video>
+	</div>
+</div>
+<div>
+<label><input type="radio" name="media" value="camera" checked disabled>カメラ</label>
+<label><input type="radio" name="media" value="window" disabled>ウィンドウ</label><br>
+<label><input type="radio" name="cameraMode" value="front" checked disabled>フロントカメラ</label>
+<label><input type="radio" name="cameraMode" value="rear" disabled>リアカメラ</label><br>
+<input type="text" id="room"><button type="button" id="connectBtn">接続</button><br>
+</div>
+<div>
+<ul id="messageList"></ul>
+</div>
+</form>
+<hr>
+<div th:replace="common_element/footer::footer"></div>
+</body>
+</html>

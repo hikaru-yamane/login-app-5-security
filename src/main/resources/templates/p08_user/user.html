@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>user</title>
+<script th:src="@{/js/common/csrf.js}"></script>
+</head>
+<body>
+<div th:replace="common_element/header::header"></div>
+<hr>
+<form th:action="@{/user/register}" method="post" th:object="${userForm}">
+<div>ユーザ登録</div>
+<div>
+<label>[[#{userForm.name}]]<input type="text" th:field="*{name}"></label>
+<!--/*
+<th:block th:if="#{fields.hasErrors('name')}">
+<span th:errors="*{name}" style="color:red"></span>
+</th:block>
+*/-->
+</div>
+<div>
+<label>[[#{userForm.email}]]<input type="text" th:field="*{email}"></label>
+<!--/*
+<th:block th:if="#{fields.hasErrors('email')}">
+<span th:errors="*{email}" style="color:red"></span>
+</th:block>
+*/-->
+</div>
+<div>
+<label>[[#{userForm.password}]]<input type="password" th:field="*{password}" autocomplete="off"></label>
+<!--/*
+<th:block th:if="#{fields.hasErrors('password')}">
+<span th:errors="*{password}" style="color:red"></span>
+</th:block>
+*/-->
+</div>
+<th:block th:if="#{fields.hasErrors('*')}">
+<ul style="color:red">
+<th:block th:each="err : ${#fields.errors('*')}">
+<li th:text="${err}"></li>
+</th:block>
+</ul>
+</th:block>
+<th:block th:if="*{doubleEmailError}">
+<ul style="color:red">
+<li th:text="#{userForm.doubleEmailErrorMessage}"></li>
+</ul>
+</th:block>
+<div><button type="submit">登録</button></div>
+</form>
+<hr>
+<div th:replace="common_element/footer::footer"></div>
+</body>
+</html>

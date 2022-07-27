@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<!--
+<meta th:name="_csrf" th:content="${_csrf.token}">
+<meta th:name="_csrf_header" th:content="${_csrf.headerName}">
+-->
+<title>time</title>
+<script th:src="@{/js/common/csrf.js}"></script>
+<script>
+window.addEventListener('load', () => {
+	getTime();
+	document.getElementById('startBtn').addEventListener('click', () => {
+		registerTime('出勤');
+	});
+	document.getElementById('stopBtn').addEventListener('click', () => {
+		registerTime('退勤');
+	});
+});
+function getTime() {
+	const url = '/time/get';
+	/*
+	const head = document.head;
+	const csrfKey = head.querySelector('meta[name="_csrf_header"]').content;
+	const csrfVal = head.querySelector('meta[name="_csrf"]').content;
+	*/
+	const token = (() => {
+		const cookie = document.cookie;
+		const token = cookie.match(/(?<=XSRF\-TOKEN\=).*?(?=(;|$))/)[0];
+		return token;
+	})();
+	const param = {
+		method: 'post',
+		headers: {
+			'Content-Type': 'application/json; charset=UTF-8',
+			Accept: 'application/json',
+			//[csrfKey]: csrfVal,
+			'X-XSRF-TOKEN': token
+		}
+	};
+	fetch(url, param)
+		.then((res) => {
+			if (!res.ok) {
+				throw new Error('データを取得できませんでした。');
+			}
+			return res.json();
+		})
+		.then((data) => {
+			if (data.length != 0) {
+				const ul = document.createElement('ul');
+				data.forEach((time) => {
+					const li = document.createElement('li');
+					li.textContent = `${time.workType} ${time.dateTime}`;
+					ul.insertAdjacentElement('beforeend', li);
+				});
+				const div = document.getElementById('timeList');
+				div.insertAdjacentElement('beforeend', ul);
+			}
+		})
+		.catch((err) => {
+			alert(err.message);
+		});
+}
+function registerTime(workType) {
+	const url = '/time/register';
+	/*
+	const head = document.head;
+	const csrfKey = head.querySelector('meta[name="_csrf_header"]').content;
+	const csrfVal = head.querySelector('meta[name="_csrf"]').content;
+	*/
+	const token = (() => {
+		const cookie = document.cookie;
+		const token = cookie.match(/(?<=XSRF\-TOKEN\=).*?(?=(;|$))/)[0];
+		return token;
+	})();
+	const dateTime = (() => {
+		const d = new Date();
+		const yyyy = d.getFullYear();
+		const MM = (d.getMonth() + 1).toString().padStart(2, '0');
+		const dd = d.getDate().toString().padStart(2, '0');
+		const HH = d.getHours().toString().padStart(2, '0');
+		const mm = d.getMinutes().toString().padStart(2, '0');
+		const ss = d.getSeconds().toString().padStart(2, '0');
+		const dateTime = `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}`;
+		return dateTime;
+	})();
+	const body = { workType:workType, dateTime:dateTime };
+	const param = {
+		method: 'post',
+		headers: {
+			'Content-Type': 'application/json; charset=UTF-8',
+			Accept: 'application/json',
+			//[csrfKey]: csrfVal,
+			'X-XSRF-TOKEN': token
+		},
+		body: JSON.stringify(body)
+	};
+	fetch(url, param)
+		.then((res) => {
+			if (!res.ok) {
+				throw new Error('データを登録できませんでした。');
+			}
+			const div = document.getElementById('timeList');
+			if (div.firstElementChild) {
+				const ul = div.firstElementChild;
+				const li = document.createElement('li');
+				li.textContent = `${body.workType} ${body.dateTime}`;
+				ul.insertAdjacentElement('beforeend', li);
+			} else {
+				const ul = document.createElement('ul');
+				const li = document.createElement('li');
+				li.textContent = `${body.workType} ${body.dateTime}`;
+				ul.insertAdjacentElement('beforeend', li);
+				div.insertAdjacentElement('beforeend', ul);
+			}
+		})
+		.catch((err) => {
+			alert(err.message);
+		});
+}
+</script>
+</head>
+<body>
+<div th:replace="common_element/header::header"></div>
+<hr>
+<div>
+<button type="submit" id="startBtn">出勤</button>
+<button type="submit" id="stopBtn">退勤</button>
+</div>
+<div id="timeList"></div>
+<hr>
+<div th:replace="common_element/footer::footer"></div>
+</body>
+</html>

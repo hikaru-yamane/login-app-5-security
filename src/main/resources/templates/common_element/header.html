@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html 
+	xmlns:th="http://www.thymeleaf.org" 
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security" 
+>
+<head>
+<meta charset="UTF-8">
+<title>header</title>
+<style th:fragment="headerStyle">
+div.row {
+	display: flex;
+}
+div.row > div,
+div.row > form {
+	margin-right: 10px
+}
+</style>
+</head>
+<body>
+<div th:fragment="header" style="display:flex;">
+<div style="margin-right:10px;">ヘッダー</div>
+<div style="margin-right:10px;">
+<span sec:authentication="principal.username"></span>さん
+</div>
+<form th:action="@{/home}" method="post" style="margin-right:10px;">
+<button type="submit">ホーム画面へ戻る</button>
+</form>
+<form th:action="@{/logout}" method="post" style="margin-right:10px;">
+<button type="submit">ログアウト</button>
+</form>
+</div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>login</title>
+<script th:src="@{/js/common/csrf.js}"></script>
+<script>
+window.addEventListener('load', () => {
+	document.getElementById('guestBtn').addEventListener('click', () => {
+		const form = document.form;
+		form.email.value = 'guest@domain';
+		form.password.value = '74937484';
+		form.submit();
+	});
+	document.getElementById('adminBtn').addEventListener('click', () => {
+		const form = document.form;
+		form.email.value = 'admin@domain';
+		form.password.value = '74937484';
+		form.submit();
+	});
+});
+</script>
+</head>
+<body>
+<form th:action="@{/authenticate}" method="post" name="form">
+<div><label>メールアドレス<input type="text" name="email"></label></div>
+<div><label>パスワード<input type="password" name="password" autocomplete="off"></label></div>
+<th:block th:if="${param.error}">
+<div th:text="#{loginForm.authErrorMessage}" style="color:red"></div>
+</th:block>
+<div>
+<button type="submit">ログイン</button>
+<button type="button" id="guestBtn">ログイン（ゲスト）</button>
+<button type="button" id="adminBtn">ログイン（管理者）</button>
+</div>
+</form>
+</body>
+</html>

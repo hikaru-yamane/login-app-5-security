@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>forum</title>
+<script th:src="@{/js/common/csrf.js}"></script>
+<script>
+let socket;
+window.addEventListener('load', () => {
+	document.getElementById('connectBtn').addEventListener('click', () => {
+		const room = document.getElementById('room').value;
+		if (!room) {
+			alert('接続先を入力してください。');
+			return;
+		}
+		if (socket) {
+			socket.close();
+		}
+		
+		const isLocal = location.hostname === 'localhost';
+		const ws = isLocal ? 'ws' : 'wss';
+		const host = location.host;
+		const url = `${ws}://${host}/forum/${room}`;
+		socket = new WebSocket(url);
+		socket.onopen = () => {
+			const li = document.createElement('li');
+			li.textContent = `${room}に接続しました。`;
+			document.getElementById('messageList').appendChild(li);
+		};
+		socket.onmessage = (event) => {
+			const li = document.createElement('li');
+			li.textContent = event.data;
+			document.getElementById('messageList').appendChild(li);
+		};
+		socket.onerror = () => {
+			const li = document.createElement('li');
+			li.textContent = `${room}に接続できませんでした。`;
+			document.getElementById('messageList').appendChild(li);
+		};
+	});
+	document.getElementById('sendBtn').addEventListener('click', () => {
+		const messageInput = document.getElementById('message');
+		const message = messageInput.value;
+		if (!message) {
+			alert('送信するメッセージを入力してください。');
+			return;
+		}
+		if (!socket || socket.readyState !== WebSocket.OPEN) {
+			alert('先に接続して下さい。');
+			return;
+		}
+		socket.send(message);
+		messageInput.value = '';
+	});
+});
+window.addEventListener('beforeunload', () => {
+	if (socket) {
+		socket.close();
+	}
+});
+</script>
+</head>
+<body>
+<div th:replace="common_element/header::header"></div>
+<hr>
+<div>
+<input type="text" id="room">
+<button type="button" id="connectBtn">接続</button>
+</div>
+<div>
+<input type="text" id="message">
+<button type="button" id="sendBtn">送信</button>
+</div>
+<div>
+<ul id="messageList"></ul>
+</div>
+<hr>
+<div th:replace="common_element/footer::footer"></div>
+</body>
+</html>

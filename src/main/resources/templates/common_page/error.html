@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>error</title>
+</head>
+<body>
+<form th:action="@{/error/login}" method="post">
+<div th:text="'timestamp: ' + ${timestamp}"></div>
+<div th:text="'status: ' + ${status}"></div>
+<div th:text="'error: ' + ${error}"></div>
+<div th:text="'exception: ' + ${exception}"></div>
+<div th:text="'message: ' + ${message}"></div>
+<div th:text="'errors: ' + ${errors}"></div>
+<div th:text="'trace: ' + ${trace}"></div>
+<div th:text="'path: ' + ${path}"></div>
+<div><button type="submit">ログインへ戻る</button></div>
+</form>
+</body>
+</html>

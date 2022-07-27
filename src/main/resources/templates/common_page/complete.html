@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>complete</title>
+</head>
+<body>
+<div th:replace="common_element/header::header"></div>
+<hr>
+<th:block th:if="${completeForm.imageSrc}">
+<div><img th:src="${completeForm.imageSrc}" width="200" height="200" alt="画像"></div>
+</th:block>
+<div th:text="${completeForm.message}"></div>
+<hr>
+<div th:replace="common_element/footer::footer"></div>
+</body>
+</html>
